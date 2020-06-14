@@ -1,0 +1,45 @@
+# Titanic Project Config File
+
+# This data set only contains the features we want to use,
+# and with title extracted from the name variable:
+
+# data:
+PATH_TO_DATA: 'https://www.openml.org/data/get_csv/16826755/phpMYEkMl'
+
+# general:
+TARGET: survived
+FEATURES:
+  - pclass
+  - age
+  - sex
+  - sibsp
+  - parch
+  - fare
+  - cabin
+  - embarked
+  - title
+
+# pre-processing:
+NUMERICAL_TO_FLOAT:
+  - age
+  - fare
+NUMERICAL_TO_IMPUTE:
+  - age
+  - fare
+NUMERICAL_TO_SCALE:
+  - age
+  - fare
+CATEGORICAL_WITH_MISSING_VALUES:
+  - cabin
+  - embarked
+CATEGORICAL_WITH_RARE_LABELS:
+  - cabin
+  - title
+DICT_OF_FREQUENT_LABELS:
+  CABIN:
+    - C
+    - Missing
+  TITLE:
+    - Miss
+    - Mr
+    - Mrs
