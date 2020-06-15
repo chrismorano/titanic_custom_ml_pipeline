@@ -4,9 +4,11 @@
 # and with title extracted from the name variable:
 
 # data:
-PATH_TO_DATA: 'https://www.openml.org/data/get_csv/16826755/phpMYEkMl'
-PATH_TO_DATA_POST_ETL: '../data/titanic_post_etl.csv'
-PATH_TO_DATA_POST_MODEL: '../data/titanic_w_preds.csv'
+TITANIC_DATA: 'https://www.openml.org/data/get_csv/16826755/phpMYEkMl'
+TITANIC_POST_ETL: '../data/titanic_post_etl.csv'
+TITANIC_X_TRAIN: '../data/titanic_x_train.csv'
+TITANIC_X_TEST: '../data/titanic_x_test.csv'
+TITANIC_MODEL: '../models/model.pkl'
 
 # general:
 TARGET: survived
@@ -40,10 +42,10 @@ CATEGORICAL_WITH_RARE_LABELS:
   - cabin
   - title
 DICT_OF_FREQUENT_LABELS:
-  CABIN:
+  cabin:
     - C
     - Missing
-  TITLE:
+  title:
     - Miss
     - Mr
     - Mrs

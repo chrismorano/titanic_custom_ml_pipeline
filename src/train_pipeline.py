@@ -1,11 +1,10 @@
-import re
 import numpy as np
 import pandas as pd
 
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.metrics import accuracy_score, roc_auc_score
 
 import joblib   # only necessary if saving the model.
 
@@ -14,8 +13,9 @@ class TrainingPipeline:
 
     def __init__(self, features, target, numerical_to_impute, numerical_to_scale, categorical_with_missing,
                  categorical_with_rare, dict_of_freq_labels, test_size=0.2, random_state=0, save_train_flag=True,
-                 save_train_location='./train.csv', save_test_flag=True, save_test_location='./test.csv',
-                 save_model_flag=True, save_model_location='./model.pkl' ):
+                 save_train_filename='./train.csv', save_test_flag=True, save_test_filename='./test.csv',
+                 save_scaler_flag=False, save_scaler_filename='./scaler.pkl',
+                 save_model_flag=True, save_model_filename='./model.pkl'):
 
         self.X_train = None
         self.X_test = None
@@ -37,14 +37,16 @@ class TrainingPipeline:
         self.random_state = random_state
 
         self.scaler = StandardScaler()
-        self.model = LogisticRegression(self.random_state)
+        self.model = LogisticRegression(random_state=self.random_state)
 
         self.save_train_flag = save_train_flag
-        self.save_train_location = save_train_location
+        self.save_train_filename = save_train_filename
         self.save_test_flag = save_test_flag
-        self.save_test_location = save_test_location
+        self.save_test_filename = save_test_filename
+        self.save_scaler_flag = save_scaler_flag
+        self.save_scaler_filename = save_scaler_filename
         self.save_model_flag = save_model_flag
-        self.save_model_location = save_model_location
+        self.save_model_filename = save_model_filename
 
     '''Pre-processing functions:'''
     '''Learning Parameters from the training data'''
@@ -58,7 +60,7 @@ class TrainingPipeline:
     def add_missing_indicator(self, df):
         df = df.copy()
         for var in self.numerical_to_impute:
-            df[var + '_NA'] = np.where(df[var].inull(), 1, 0)
+            df[var + '_NA'] = np.where(df[var].isnull(), 1, 0)
         return df
 
     def impute_numerical_na(self, df):
@@ -75,7 +77,7 @@ class TrainingPipeline:
 
     def remove_rare_labels(self, df):
         for var in self.categorical_with_rare:
-            df[var] = np.where(df[var].isin(self.dict_of_freq_labels), df[var], "Rare")
+            df[var] = np.where(df[var].isin(self.dict_of_freq_labels[var]), df[var], "Rare")
         return df
 
     def encode_categorical(self, df):
@@ -85,7 +87,7 @@ class TrainingPipeline:
 
     def test_data_dummy_variable_check(self, df_to_score):
         df_to_score = df_to_score.copy()
-        vars_to_add = set(self.features).difference(df_to_score.columns)
+        vars_to_add = set(self.final_feature_list).difference(df_to_score.columns)
         for var in vars_to_add:
             df_to_score[var] = 0
         return df_to_score
@@ -126,29 +128,31 @@ class TrainingPipeline:
         self.X_test = self.encode_categorical(self.X_test)
 
         # add columns to the test set that may have not been captures through one-hot encoding:
+        self.final_feature_list = self.X_train.columns
         self.X_test = self.test_data_dummy_variable_check(self.X_test)
 
         # training the standard scaler:
         self.scaler.fit(self.X_train[self.numerical_to_scale])
+        if self.save_scaler_flag:
+            joblib.dump(self.scaler, self.save_scaler_filename)
 
         # scaling those variables:
         self.X_train[self.numerical_to_scale] = self.scaler.transform(self.X_train[self.numerical_to_scale])
         self.X_test[self.numerical_to_scale] = self.scaler.transform(self.X_test[self.numerical_to_scale])
 
         # making sure the variables are in the same order for training and testing:
-        self.final_feature_list = self.X_train.columns
         self.X_test = self.X_test[self.final_feature_list]
 
         # saving, if save flags are True:
         if self.save_train_flag:
-            self.X_train.to_csv(self.save_train_location, index=False)
+            self.X_train.to_csv(self.save_train_filename, index=False)
         if self.save_test_flag:
-            self.X_test.to_csv(self.save_test_location, index=False)
+            self.X_test.to_csv(self.save_test_filename, index=False)
 
         # training the model:
         self.model.fit(self.X_train, self.y_train)
         if self.save_model_flag:
-            joblib.dump(self.model, self.save_model_location)
+            joblib.dump(self.model, self.save_model_filename)
 
         return self
 
@@ -182,12 +186,31 @@ class TrainingPipeline:
 
         return data
 
-    def predict(self):
+    def predict(self, data):
         '''Will predict on new data.'''
-        return
+        data = self._transform(data)
+        predictions = self.model.predict(data)
+        
+        return predictions
 
     def evaluate_model(self):
-        return
+        if self.X_train is None:
+            print("Model is not yet trained.")
+        else:
+            train_preds = self.model.predict(self.X_train)
+            test_preds = self.model.predict(self.X_test)
+
+            print('')
+            print('--------TRAINING ERRORS----------')
+            print(f'Accuracy Score: {accuracy_score(self.y_train, train_preds)}')
+            print(f'ROC AUC Score: {roc_auc_score(self.y_train, train_preds)}')
+            print('')
+            print('--------TESTING ERRORS-----------')
+            print(f'Accuracy Score: {accuracy_score(self.y_test, test_preds)}')
+            print(f'ROC AUC Score: {roc_auc_score(self.y_test, test_preds)}')
+            print('')
+            
+        return None
 
 
 
