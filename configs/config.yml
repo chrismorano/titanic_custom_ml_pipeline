@@ -5,6 +5,8 @@
 
 # data:
 PATH_TO_DATA: 'https://www.openml.org/data/get_csv/16826755/phpMYEkMl'
+PATH_TO_DATA_POST_ETL: '../data/titanic_post_etl.csv'
+PATH_TO_DATA_POST_MODEL: '../data/titanic_w_preds.csv'
 
 # general:
 TARGET: survived
@@ -19,10 +21,12 @@ FEATURES:
   - embarked
   - title
 
-# pre-processing:
+# ETL pre-processing:
 NUMERICAL_TO_FLOAT:
   - age
   - fare
+
+# model pre-processing:
 NUMERICAL_TO_IMPUTE:
   - age
   - fare
