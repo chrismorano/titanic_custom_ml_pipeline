@@ -11,7 +11,10 @@ with open("../configs/config.yml", "r") as ymlfile:
 etl_pipeline = ETLPipeline(features=cfg['FEATURES'],
                            target=cfg['TARGET'],
                            numerical_to_float=cfg['NUMERICAL_TO_FLOAT'],
-                           save_filename=cfg['TITANIC_POST_ETL'])
+                           save_raw_flag=cfg['SAVE_RAW_DATA'],
+                           save_raw_filename=cfg['TITANIC_RAW'],
+                           save_clean_data_flag=cfg['SAVE_DATA_POST_ETL'],
+                           save_clean_data_filename=cfg['TITANIC_POST_ETL'])
 
 training_pipeline = TrainingPipeline(features=cfg['FEATURES'],
                                      target=cfg['TARGET'],
@@ -20,8 +23,10 @@ training_pipeline = TrainingPipeline(features=cfg['FEATURES'],
                                      categorical_with_missing=cfg['CATEGORICAL_WITH_MISSING_VALUES'],
                                      categorical_with_rare=cfg['CATEGORICAL_WITH_RARE_LABELS'],
                                      dict_of_freq_labels=cfg['DICT_OF_FREQUENT_LABELS'],
+                                     save_train_test_flag=cfg['SAVE_TRAIN_TEST_DATA'],
                                      save_train_filename=cfg['TITANIC_X_TRAIN'],
                                      save_test_filename=cfg['TITANIC_X_TEST'],
+                                     save_scaler_filename=cfg['TITANIC_SCALER'],
                                      save_model_filename=cfg['TITANIC_MODEL'])
 
 if __name__ == '__main__':

@@ -6,21 +6,23 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, roc_auc_score
 
-import joblib   # only necessary if saving the model.
+import joblib
 
 
 class TrainingPipeline:
 
     def __init__(self, features, target, numerical_to_impute, numerical_to_scale, categorical_with_missing,
-                 categorical_with_rare, dict_of_freq_labels, test_size=0.2, random_state=0, save_train_flag=True,
-                 save_train_filename='./train.csv', save_test_flag=True, save_test_filename='./test.csv',
-                 save_scaler_flag=False, save_scaler_filename='./scaler.pkl',
-                 save_model_flag=True, save_model_filename='./model.pkl'):
+                 categorical_with_rare, dict_of_freq_labels, test_size=0.2, random_state=0,
+                 save_train_test_flag=True, save_train_filename='../data/titanic_training_data.csv',
+                 save_test_filename='../data/titanic_testing_data.csv',
+                 save_scaler_filename='../models/scaler.pkl', save_model_filename='../models/model.pkl'):
 
         self.X_train = None
         self.X_test = None
         self.y_train = None
         self.y_test = None
+        self.train_full = None
+        self.test_full = None
 
         self.features = features
         self.target = target
@@ -37,15 +39,13 @@ class TrainingPipeline:
         self.random_state = random_state
 
         self.scaler = StandardScaler()
-        self.model = LogisticRegression(random_state=self.random_state)
+        self.model = LogisticRegression(solver='liblinear', random_state=self.random_state)
 
-        self.save_train_flag = save_train_flag
+        self.save_train_test_flag = save_train_test_flag
         self.save_train_filename = save_train_filename
-        self.save_test_flag = save_test_flag
         self.save_test_filename = save_test_filename
-        self.save_scaler_flag = save_scaler_flag
+
         self.save_scaler_filename = save_scaler_filename
-        self.save_model_flag = save_model_flag
         self.save_model_filename = save_model_filename
 
     '''Pre-processing functions:'''
@@ -133,8 +133,7 @@ class TrainingPipeline:
 
         # training the standard scaler:
         self.scaler.fit(self.X_train[self.numerical_to_scale])
-        if self.save_scaler_flag:
-            joblib.dump(self.scaler, self.save_scaler_filename)
+        joblib.dump(self.scaler, self.save_scaler_filename)
 
         # scaling those variables:
         self.X_train[self.numerical_to_scale] = self.scaler.transform(self.X_train[self.numerical_to_scale])
@@ -144,15 +143,20 @@ class TrainingPipeline:
         self.X_test = self.X_test[self.final_feature_list]
 
         # saving, if save flags are True:
-        if self.save_train_flag:
-            self.X_train.to_csv(self.save_train_filename, index=False)
-        if self.save_test_flag:
-            self.X_test.to_csv(self.save_test_filename, index=False)
+        if self.save_train_test_flag:
+            # adding the target to the training set:
+            self.train_full = self.X_train.copy()
+            self.train_full[self.target] = self.y_train
+            self.train_full.to_csv(self.save_train_filename, index=False)
+
+            # adding the target to the testing set:
+            self.test_full = self.X_test.copy()
+            self.test_full[self.target] = self.y_test
+            self.test_full.to_csv(self.save_test_filename, index=False)
 
         # training the model:
         self.model.fit(self.X_train, self.y_train)
-        if self.save_model_flag:
-            joblib.dump(self.model, self.save_model_filename)
+        joblib.dump(self.model, self.save_model_filename)
 
         return self
 
@@ -211,6 +215,3 @@ class TrainingPipeline:
             print('')
             
         return None
-
-
-

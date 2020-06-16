@@ -5,14 +5,18 @@ import numpy as np
 
 class ETLPipeline:
 
-    def __init__(self, features, target, numerical_to_float, save_flag=True, save_filename='./titanic_clean.csv'):
+    def __init__(self, features, target, numerical_to_float, save_raw_flag=True,
+                 save_raw_filename='../data/titanic_raw.csv', save_clean_data_flag=True,
+                 save_clean_data_filename='../data/titanic_post_etl.csv'):
 
         self.features = features
         self.target = target
         self.numerical_to_float = numerical_to_float
-        
-        self.save_flag = save_flag
-        self.save_filename = save_filename
+
+        self.save_raw_flag = save_raw_flag
+        self.save_raw_filename = save_raw_filename
+        self.save_clean_data_flag = save_clean_data_flag
+        self.save_clean_data_filename = save_clean_data_filename
     
 
     def basic_data_cleaning(self, df):
@@ -62,12 +66,14 @@ class ETLPipeline:
     def transform(self, data):
         ''' '''
         data = data.copy()
+        if self.save_raw_flag:
+            data.to_csv(self.save_raw_filename, index=False)
         data = self.basic_data_cleaning(data)
         data = self.cast_to_float(data)
         data = self.replace_name_with_title(data)
         data = self.extract_cabin_letter(data)
         data = data[self.features + [self.target]]
-        if self.save_flag:
-            data.to_csv(self.save_filename, index=False)
+        if self.save_clean_data_flag:
+            data.to_csv(self.save_clean_data_filename, index=False)
 
         return data

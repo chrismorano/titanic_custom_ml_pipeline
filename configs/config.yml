@@ -5,9 +5,17 @@
 
 # data:
 TITANIC_DATA: 'https://www.openml.org/data/get_csv/16826755/phpMYEkMl'
+SAVE_RAW_DATA: True
+TITANIC_RAW: '../data/titanic_raw.csv'
+
+SAVE_DATA_POST_ETL: True
 TITANIC_POST_ETL: '../data/titanic_post_etl.csv'
-TITANIC_X_TRAIN: '../data/titanic_x_train.csv'
-TITANIC_X_TEST: '../data/titanic_x_test.csv'
+
+SAVE_TRAIN_TEST_DATA: True
+TITANIC_X_TRAIN: '../data/titanic_training_data.csv'
+TITANIC_X_TEST: '../data/titanic_testing_data.csv'
+
+TITANIC_SCALER: '../models/scaler.pkl'
 TITANIC_MODEL: '../models/model.pkl'
 
 # general:
